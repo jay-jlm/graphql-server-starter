@@ -1,4 +1,3 @@
-require('dotenv').config()
 
 import express from 'express'
 import bodyParser from 'body-parser'
@@ -18,10 +17,17 @@ import {
 
 import mongoose from 'mongoose'
 
+require('dotenv').config()
+
+const app = express()
+const PORT = process.env.PORT || 3000
+app.use(cors())
+
 
 // initialize database connection
 const DB_URL = process.env.DB_URL || (`mongodb://localhost/${process.env.DB_NAME || 'graphql-server'}`)
-mongoose.connect(DB_URL).then(
+
+/* mongoose.connect(DB_URL).then(
   () => { console.log('Connected to mongodb') },
   err => { console.log(`Mongodb connection error: \n${err}`) }
 );
@@ -31,14 +37,9 @@ const schema = makeExecutableSchema({
     resolvers,
     schemaDirectives
 })
-
-const app = express()
-
-const PORT = process.env.PORT || 3000
-
-app.use(cors())
 app.use('/graphql', bodyParser.json(), graphqlExpress(req => ({ schema, context: {models, req }})))
 app.use('/graphiql', graphiqlExpress({ endpointURL: '/graphql' }))
+
 
 const server = createServer(app)
 
@@ -53,3 +54,4 @@ server.listen(PORT, () => {
       path: '/subscriptions'
     })
 })
+*/

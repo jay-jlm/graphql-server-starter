@@ -1,7 +1,17 @@
 import fs from 'fs'
+import { camelize } from 'humps'
+import { buildInput,
+         buildMethod,
+         wrapAsQuery,
+         wrapAsMutation } from './graphql-codegen-util'
+
 
 // base path without the trailing '/'
 const basePath = ('.')
+
+const log = str => {
+    str.split('\\n').forEach(line => console.log(line))
+}
 
 const parseModules = (
     dir,
@@ -43,14 +53,20 @@ const parseModules = (
             parseModules(`${dir}/${name}`, models, tmpResolvers, types)
         } else {
             const moduleName = dir
-                .replace(`${basePath}/modules/`,'')
+                .replace(`${basePath}/modules/`, '')
                 .split('/').map(dir => `${dir[0].toUpperCase()}${dir.slice(1)}`)
                 .join('')
-            name.includes('model') ? parseModel(name, dir, models, moduleName)
-            : name.includes('resolvers') ? parseResolvers(name, dir, tmpResolvers)
-            : name.includes('types') ? parseTypes(name, dir, types)
-            : console.log(`did not recognize ${name} on path of ${dir}`)
+            if (name.includes('model')){
+                parseModel(name, dir, models, moduleName)
+            }
+            if (name.includes('resolvers')){
+                parseResolvers(name, dir, tmpResolvers)
+            }
+            if (name.includes('types') ) {
+                parseTypes(name, dir, types, moduleName, models)
+            }
         }
+        return
     })
 
     const { queries, mutations, subscriptions, namedResolvers } = tmpResolvers
@@ -89,8 +105,19 @@ const parseResolvers = (name, dir, tmpResolvers) => {
     
 }
 
-const parseTypes = (name, dir, types) => {
+const parseTypes = (name, dir, types, moduleName, models) => {
     const typesExports = require(`.${dir}/${name}`)
+    if(moduleName.toLowerCase().includes('user')) {
+        const inputType = buildInput(moduleName, models[moduleName].schema.paths)
+        log(inputType)
+        const prefix = moduleName.toLowerCase()
+        const queryOne =  buildMethod(`${prefix}FindOne`,[[`${prefix}Id`, 'ID']], moduleName)
+        const queryMany = buildMethod(`${prefix}FindMany`,[], `[${moduleName}]`)
+        const createOne = buildMethod(`${prefix}CreateOne`,[[`${prefix}`, `${moduleName}Input`]], moduleName)
+        log(wrapAsQuery([queryOne, queryMany]))
+        log(wrapAsMutation(createOne))
+
+    }
     typesExports.default ? types = types.push(typesExports.default) : console.warn(`Please export Types in ${dir}/${name} as default`)
 }
 

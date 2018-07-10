@@ -12,17 +12,18 @@ export const queries = {
 }
 
 export const mutations = {
-    createUser: async (parent, args, { models }) => {
+    userCreateOne: async (parent, { userInfo, companyInfo} , { models }) => {
         const { User } = models
-        const user = await new User(args).save()
+        if (companyInfo) {
+            try {
+                res = await new Company(args.companyInfo).save()
+                userInfo.companyId = res._id
+            }catch (err){
+                return   
+            }
+        } 
+        const user = await new User(userInfo).save()
         return user
     }
 }
 
-export const User = {
-    comments: async (parent, args, { models }) => {
-        const { Comment } = models
-        const comments = await Comment.find({userId: parent._id})
-        return comments
-    }
-}

@@ -1,33 +1,19 @@
 import mongoose from 'mongoose'
-const Schema = mongoose.Schema
 
-const User = new Schema({
+const User = new mongoose.Schema({
     firstName: {
         type: String,
-    },
-    lastName: {
-        type: String
+        required: true,
     },
     email: {
-        type: String
+        type: String,
+        required: true,
     },
-    scope: {
-        type: [String]
+    companyId: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true,
     },
-    createdAt: {
-        type: Date
-    },
-    updatedAt: {
-        type: Date
-    }
-})
+}, { timestamps: true })
 
-User.pre('save', function(next) {
-    if (!this.createdAt) {
-        this.createdAt = Date.now()
-    }
-    this.updatedAt = Date.now()
-    next()
-})
 
 export default mongoose.model('user', User)
